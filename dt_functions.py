@@ -3,7 +3,7 @@ import pandas as pd
 
 
 
-form_factor_table = pd.read_csv('ext_data/Atomic_form_factor_coeficients.csv', delimiter = ';')
+form_factor_table = pd.read_csv('/cds/home/d/diegotur/UED/FePt/ext_data/Atomic_form_factor_coeficients.csv', delimiter = ';')
 for i in range(form_factor_table['Element'].shape[0]):
     form_factor_table['Element'][i] = form_factor_table['Element'][i].strip()
 
@@ -28,7 +28,7 @@ def form_factor(Q, element = 'Pt'):
 
 
 # first I need the periodic table of the elements to get Z.... 
-periodic_table = pd.read_csv('ext_data/Periodic Table of Elements.csv')
+periodic_table = pd.read_csv('/cds/home/d/diegotur/UED/FePt/ext_data/Periodic Table of Elements.csv')
 
 def electron_form_factor(Q, element):
     '''
@@ -163,4 +163,115 @@ def two_expssum_2_with_rec2(time,A1, B1, A2, B2,A_rec, B_rec):
     return exp1 + exp2 + exp_rec
 
 
+######################################################################################################
+# calculating lattice parameter and error propagation
+######################################################################################################
+
+def find_q(bragg_pos, center_pos, coef=1):
+    '''
+    takes a bragg postition in px and the center of the diffraction pattern coordinate in px and transforms 
+    returns a list of transfer vave vectors
+    '''
+    q2 = (bragg_pos - center_pos)[0]**2 + (bragg_pos - center_pos)[1]**2
+    q = np.sqrt(q2)
+    return q*coef
+
+
+def find_a(bragg_pos, center_pos, bragg_idxs, coef=1):
+    '''
+    Takes a bragg postition in px and the center of the diffraction pattern coordinate in px and transforms 
+    returns the reciprocal lattice parameter by using the index of the bragg spot
+    Comment: there is the error function later, this probably should be implemented into a single function with the 
+    return_error = False/True parameter at some later point in time
+    
+    Paramters:
+    bragg_pos: coordinate in px array with shape (n,2) n being the number of bragg spots fitted
+    center_pos: coordinate in px of the center of the diffraction pattern
+    bragg_idxs: index of the each bragg, shape (n,3) with one point being (1, 0, 0) and so on
+    
+    Returns:
+    a: the reciprocal lattice unit vector or a list of recirpocal lattice unit vecotrs
+    
+    '''
+    q2 = (bragg_pos - center_pos)[0]**2 + (bragg_pos - center_pos)[1]**2
+    idx2 = bragg_idxs[0]**2 + bragg_idxs[1]**2 + bragg_idxs[2]**2
+    a = np.sqrt(q2/idx2)
+    return a*coef
+
+def find_q_error(bragg_pos, center_pos, center_error, pos_error, coef=1):
+    '''
+    Finds the error on the q position from the fitted positions (in px)
+    and the fit errors
+    Parameters:
+    bragg_pos: coordinate in px array with shape (n,2) n being the number of bragg spots fitted
+    center_pos: coordinate in px of the center of the diffraction pattern
+    center_error: error obtained from the fit on the center coordinate in px
+    pos_error : error obtained from the fit on the peak position coordinate in px
+    coef: coeficient of proportionality ( we are in small angle approximation) between pixel and wavevector value in A-1
+    
+    Returns:
+    q_error : vector of size n with the estimated errors of the transfer wavevector in A-1
+    
+    '''
+    q = np.sqrt((bragg_pos - center_pos)[0]**2 + (bragg_pos - center_pos)[1]**2)
+    
+    dq_dx  = (bragg_pos - center_pos)[0] / q
+    dq_dcx = (center_pos - bragg_pos)[0] / q
+    dq_dy  = (bragg_pos - center_pos)[1] / q
+    dq_dcy = (center_pos - bragg_pos)[1] / q
+    
+    q_error = np.sqrt( dq_dx**2 * pos_error[0]**2 + 
+                  dq_dcx**2 * center_error[0]**2  + 
+                  dq_dy**2 * pos_error[1]**2 + 
+                  dq_dcy**2 * center_error[1]**2  )
+
+    return q_error*coef
+
+
+def find_a_error(bragg_pos, center_pos, bragg_idxs, center_error, pos_error, coef=1):
+    '''
+    a being the reciporocal lattice parameter, this calcuates the error from calculating a from the 
+    fits.
+    
+    Parameters:
+    bragg_pos: coordinate in px array with shape (n,2) n being the number of bragg spots fitted
+    center_pos: coordinate in px of the center of the diffraction pattern
+    bragg_idxs: index of the each bragg, shape (n,3) with one point being (1, 0, 0) and so on
+    center_error: error obtained from the fit on the center coordinate in px
+    pos_error : error obtained from the fit on the peak position coordinate in px
+    coef: coeficient of proportionality ( we are in small angle approximation) between pixel and wavevector value in A-1
+    
+    Returns:
+    a_error : vector of size n with the estimated errors of the inverse lattice parameter in A-1
+    '''
+
+    q = np.sqrt((bragg_pos - center_pos)[0]**2 + (bragg_pos - center_pos)[1]**2)
+
+    dq_dx  = (bragg_pos - center_pos)[0] / q
+    dq_dcx = (center_pos - bragg_pos)[0] / q
+    dq_dy  = (bragg_pos - center_pos)[1] / q
+    dq_dcy = (center_pos - bragg_pos)[1] / q 
+    
+    
+    q_error = np.sqrt( dq_dx**2 * pos_error[0]**2 + 
+                  dq_dcx**2 * center_error[0]**2  + 
+                  dq_dy**2 * pos_error[1]**2 + 
+                  dq_dcy**2 * center_error[1]**2  )
+    
+    idx2 = bragg_idxs[0]**2 + bragg_idxs[1]**2 + bragg_idxs[2]**2
+    q *= coef
+    q_error *= coef
+    
+    a = q/np.sqrt(idx2)
+    a_error = q_error/np.sqrt(idx2)
+    
+    return a_error
+
+
+def norm_error(timetrace, timetrace_error):
+    '''
+    calculates error from normalising to the first value
+    '''
+    return np.abs(timetrace/timetrace[0])* np.sqrt( (timetrace_error/timetrace)**2 + (timetrace_error[0]/timetrace[0])**2)
+    
 
