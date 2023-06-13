@@ -258,10 +258,7 @@ def I_UED_f_warren_prop_norm2(Bfe, Bpt,BFE0, BPT0, q_tmp, hkl):
     
     Returns: 
         Intensity in arb. units 
-    '''
-    # magnitude of q 
-#     q_tmp = np.linalg.norm(bragg_pos[i], axis =-1)
-    
+    '''    
     #Debye waller factor
     mfe = Bfe*q_tmp**2
     mpt = Bpt*q_tmp**2
@@ -275,27 +272,30 @@ def I_UED_f_warren_prop_norm2(Bfe, Bpt,BFE0, BPT0, q_tmp, hkl):
     # retrun intensity depending on the hkl index results
     tmp_idx_odd  = np.where(np.sum(hkl, axis = -1) % 2 )
     tmp_idx_even = np.where(~np.sum(hkl, axis = -1) % 2 )
-#     print(f'shape q(inside function) is: {q_tmp.shape}')
+
     out = np.zeros(len(q_tmp))
     
     try:
-        out[tmp_idx_odd] = (np.exp(-mfe[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2 / (np.exp(-mfe0[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt0[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2
+#         out[tmp_idx_odd] = (np.exp(-mfe[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2 / (np.exp(-mfe0[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt0[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2
+        out[tmp_idx_odd] = np.exp( 2*(np.log(np.exp(-mpt[tmp_idx_odd])*f_Pt[tmp_idx_odd]-np.exp(-mfe[tmp_idx_odd])*f_Fe[tmp_idx_odd]) - np.log(np.exp(-mpt0[tmp_idx_odd])*f_Pt[tmp_idx_odd]-np.exp(-mfe0[tmp_idx_odd])*f_Fe[tmp_idx_odd]) ) )
+        
     except:
         print('exeption encountered at odd test')
         if (type(q_tmp)== float) or  (type(q_tmp)== int):
             if (np.sum(hkl, axis = -1) % 2) :
                 out = (np.exp(-mfe)*f_Fe - np.exp(-mpt)*f_Pt)**2 / (np.exp(-mfe0)*f_Fe - np.exp(-mpt0)*f_Pt)**2
-#     except:
-#         print('fuck odd ! ')
+
     try:
-        out[tmp_idx_even] = (np.exp(-mfe[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt[tmp_idx_even])*f_Pt[tmp_idx_even])**2 / (np.exp(-mfe0[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt0[tmp_idx_even])*f_Pt[tmp_idx_even])**2
+#         out[tmp_idx_even] = (np.exp(-mfe[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt[tmp_idx_even])*f_Pt[tmp_idx_even])**2 / (np.exp(-mfe0[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt0[tmp_idx_even])*f_Pt[tmp_idx_even])**2
+        
+        out[tmp_idx_even] = np.exp( 2*(np.log(np.exp(-mpt[tmp_idx_even])*f_Pt[tmp_idx_even]+ np.exp(-mfe[tmp_idx_even])*f_Fe[tmp_idx_even]) - np.log(np.exp(-mpt0[tmp_idx_even])*f_Pt[tmp_idx_even]+ np.exp(-mfe0[tmp_idx_even])*f_Fe[tmp_idx_even]) ) )
+        
+        
     except:
         print('exeption encountered at even test')
         if (type(q_tmp)== float) or  (type(q_tmp)== int):
             if (~np.sum(hkl, axis = -1) % 2) :
                 out = (np.exp(-mfe)*f_Fe + np.exp(-mpt)*f_Pt)**2 / (np.exp(-mfe0)*f_Fe + np.exp(-mpt0)*f_Pt)**2
-#     except:
-#         print('fuck odd ! ')
         
 #     print(f'out shape is: {out.shape}')
 #     print(out.shape)
