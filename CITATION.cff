@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "Analysis software used to process the UED data from the MeV UED source at SLAC for the paper Element-specific ultrafast lattice dynamics in FePt nanoparticles. If you use this software, please cite it as below."
+message: "Analysis software used to process the UED data from the MeV UED source at SLAC. If you use this software, please cite it as below."
 authors:
 - family-names: "Turenne"
   given-names: "Diego"
