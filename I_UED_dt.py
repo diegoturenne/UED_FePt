@@ -307,8 +307,81 @@ def I_UED_f_warren_prop_norm2(Bfe, Bpt,BFE0, BPT0, q_tmp, hkl):
 #         return (np.exp(-mfe)*f_Fe + np.exp(-mpt)*f_Pt )**2 / (np.exp(-mfe0)*f_Fe + np.exp(-mpt0)*f_Pt)**2
      
 
-
     
+    
+    
+    
+    
+    
+    
+def I_UED_f_warren_prop_norm3(Bfe, Bpt,BFE0, BPT0, q0, dq_pt, dq_fe, hkl):
+    '''
+    calculates a diffraction intensity for L10 Fept given a certan DW coefficients Bfe and BPt
+    for a particular Bragg spot from the electron Atomic form factors
+    
+     
+    Input : 
+        Bfe : B factor for Fe ( the thing in the DW exp.onential that doesn't depend on q)
+        Bpt : B factor for Pt ( the thing in the DW exponential that doesn't depend on q)
+        
+        bragg_pos : position of the Bragg Spot in Inverse Angstrom
+        hk_idx : miller index h and k of the particular bragg spot: to see if there is constructive or destructive interference
+    
+    Returns: 
+        Intensity in arb. units 
+    '''    
+    #Debye waller factor
+    mfe = Bfe*(q0+dq_fe)**2
+    mpt = Bpt*(q0+dq_pt)**2
+    
+    mfe0 = BFE0*q0**2
+    mpt0 = BPT0*q0**2
+    # load atomic form factors
+    f_Fe = dt.electron_form_factor(q0+dq_fe, element = 'Fe')
+    f_Pt = dt.electron_form_factor(q0+dq_pt, element = 'Pt')
+    
+    f_Fe0 = dt.electron_form_factor(q0, element = 'Fe')
+    f_Pt0 = dt.electron_form_factor(q0, element = 'Pt')
+    
+    # retrun intensity depending on the hkl index results
+    tmp_idx_odd  = np.where(np.sum(hkl, axis = -1) % 2 )
+    tmp_idx_even = np.where(~np.sum(hkl, axis = -1) % 2 )
+
+    out = np.zeros(len(q0))
+    
+    try:
+#         out[tmp_idx_odd] = (np.exp(-mfe[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2 / (np.exp(-mfe0[tmp_idx_odd])*f_Fe[tmp_idx_odd] - np.exp(-mpt0[tmp_idx_odd])*f_Pt[tmp_idx_odd])**2
+        out[tmp_idx_odd] = np.exp( 2*(np.log(np.exp(-mpt[tmp_idx_odd])*f_Pt[tmp_idx_odd]-np.exp(-mfe[tmp_idx_odd])*f_Fe[tmp_idx_odd]) - np.log(np.exp(-mpt0[tmp_idx_odd])*f_Pt0[tmp_idx_odd]-np.exp(-mfe0[tmp_idx_odd])*f_Fe0[tmp_idx_odd]) ) )
+        
+    except:
+        print('exeption encountered at odd test')
+        if (type(q_tmp)== float) or  (type(q_tmp)== int):
+            if (np.sum(hkl, axis = -1) % 2) :
+                out = (np.exp(-mfe)*f_Fe - np.exp(-mpt)*f_Pt)**2 / (np.exp(-mfe0)*f_Fe0 - np.exp(-mpt0)*f_Pt0)**2
+
+    try:
+#         out[tmp_idx_even] = (np.exp(-mfe[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt[tmp_idx_even])*f_Pt[tmp_idx_even])**2 / (np.exp(-mfe0[tmp_idx_even])*f_Fe[tmp_idx_even] + np.exp(-mpt0[tmp_idx_even])*f_Pt[tmp_idx_even])**2
+        
+        out[tmp_idx_even] = np.exp( 2*(np.log(np.exp(-mpt[tmp_idx_even])*f_Pt[tmp_idx_even]+ np.exp(-mfe[tmp_idx_even])*f_Fe[tmp_idx_even]) - np.log(np.exp(-mpt0[tmp_idx_even])*f_Pt0[tmp_idx_even]+ np.exp(-mfe0[tmp_idx_even])*f_Fe0[tmp_idx_even]) ) )
+        
+        
+    except:
+        print('exeption encountered at even test')
+        if (type(q_tmp)== float) or  (type(q_tmp)== int):
+            if (~np.sum(hkl, axis = -1) % 2) :
+                out = (np.exp(-mfe)*f_Fe + np.exp(-mpt)*f_Pt)**2 / (np.exp(-mfe0)*f_Fe0 + np.exp(-mpt0)*f_Pt0)**2
+        
+#     print(f'out shape is: {out.shape}')
+#     print(out.shape)
+    return out
+#     if np.asarray(hk_idx)[i].sum() % 2 : #if odd
+    
+#         return (np.exp(-mfe)*f_Fe - np.exp(-mpt)*f_Pt)**2 / (np.exp(-mfe0)*f_Fe - np.exp(-mpt0)*f_Pt)**2
+#     else:
+#         return (np.exp(-mfe)*f_Fe + np.exp(-mpt)*f_Pt )**2 / (np.exp(-mfe0)*f_Fe + np.exp(-mpt0)*f_Pt)**2
+
+
+
     
  
     

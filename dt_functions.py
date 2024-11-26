@@ -25,7 +25,21 @@ def form_factor(Q, element = 'Pt'):
         f+= ai*np.exp(-bi*((Q/(4*np.pi))**2) )
     return f
 
+def form_factor2(s, element = 'Pt'):
+    '''
+    retrives the element from the table and gives the atomic form factor for given values of 
+    s in A^-1 
+    '''
 
+    element_table = form_factor_table[form_factor_table['Element'] == element]
+    
+    f = element_table['c'].astype("float").values[0]
+    for i in range(1,5):
+        ai = element_table[f'a{i}'].astype("float").values[0]
+        bi = element_table[f'b{i}'].astype("float").values[0]
+
+        f+= ai*np.exp(-bi*((s)**2) )
+    return f
 
 # first I need the periodic table of the elements to get Z.... 
 periodic_table = pd.read_csv('/cds/home/d/diegotur/UED/FePt/ext_data/Periodic Table of Elements.csv')
@@ -36,12 +50,30 @@ def electron_form_factor(Q, element):
     uses the Mott-Bethe fromula to guesstimate the electron scattering form factor for said atom 
     Q in A^-1 
     '''
-    constant = 0.2393 #nm-1
+    constant = 0.23933754 #nm-1
     constant *= 10 #A-1 
     
     f_x = form_factor(Q, element = element)
     Z = periodic_table[periodic_table['Symbol'] ==element]['AtomicNumber'].values[0]
     f_e = constant*( (Z - f_x)/(Q**2) )
+    
+    return f_e
+
+
+def electron_form_factor2(s, element):
+    '''
+    first calculates the x-ray atomic form factor and then
+    uses the Mott-Bethe fromula to guesstimate the electron scattering form factor for said atom 
+    Q in A^-1 
+    '''
+    constant = 0.023933754 #nm-1
+#     constant *= 10 #A-1 
+    
+#     s = Q/(4*np.pi)
+    
+    f_x = form_factor2(s, element = element)
+    Z = periodic_table[periodic_table['Symbol'] ==element]['AtomicNumber'].values[0]
+    f_e = constant*( (Z - f_x)/(s**2) )
     
     return f_e
 
@@ -97,9 +129,11 @@ def exp_sat(time, A, B ):
     y : intensities
     '''
     t0= 0 
-    y = -A*np.exp(-B*(time-t0)) + A
-    mask = (time-t0) < 0
-    y[mask] = 0
+    y = A-A*np.exp(-B*(time-t0)) 
+    
+   
+    mask = np.heaviside(time-t0, 0 )
+    y *= mask
     return y
 
 def exp_sat_tau(time, A, T ):
@@ -115,9 +149,15 @@ def exp_sat_tau(time, A, T ):
     y : intensities
     '''
     t0= 0 
-    y = -A*np.exp(-(time-t0)/T) + A
-    mask = (time-t0) < 0
-    y[mask] = 0
+#     y = A-A*np.exp(-(time-t0)/T) 
+    y = A*(1-np.exp(-(time-t0)/T))
+    
+    
+    
+#     mask = (time-t0) < 0
+    mask = np.heaviside(time-t0, 0 )
+#     y[mask] = 0
+    y *= mask
     return y
 
 
