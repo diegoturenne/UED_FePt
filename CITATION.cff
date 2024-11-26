@@ -14,3 +14,20 @@ version: 1.0.0
 doi: 10.1063/4.0000260
 date-released: 2024-11-26
 url: "https://github.com/diegoturenne/UED_FePt"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Turenne"
+    given-names: "Diego"
+    orcid: "https://orcid.org/0000-0001-5992-9699"
+  - family-names: "Vaskivskyi"
+    given-names: "Igor"
+    orcid: "https://orcid.org/0000-0003-4090-14710"
+  doi: "doi.org/10.1063/4.0000260"
+  journal: "Structural Dynamics"
+  month: 11
+
+  title: "Element-specific ultrafast lattice dynamics in FePt nanoparticles"
+
+  volume: 11
+  year: 2021
