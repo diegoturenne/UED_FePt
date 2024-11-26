@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "Software used for the analysis of the data discussed in:
+"Element-specific ultrafast lattice dynamics in FePt nanoparticles".
+If you use this software, please cite it as below."
+authors:
+- family-names: "Turenne"
+  given-names: "Diego"
+  orcid: "https://orcid.org/0000-0001-5992-9699"
+- family-names: "Vaskivskyi"
+  given-names: "Igor"
+  orcid: "https://orcid.org/0000-0003-4090-14710"
+title: "UED_FePt"
+version: 1.0.0
+doi: 10.1063/4.0000260
+date-released: 2024-11-26
+url: "https://github.com/diegoturenne/UED_FePt"
