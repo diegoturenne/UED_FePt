@@ -6,3 +6,6 @@ doi: 10.1063/4.0000260
 
 If you use this data analysis software, please cite the related article. 
 
+How to use: 
+TBD
+
